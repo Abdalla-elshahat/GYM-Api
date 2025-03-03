@@ -18,7 +18,7 @@ const Class = sequelize.define(
       allowNull: true,
     },
     ClassDate: {
-      type: DataTypes.TIME,
+      type: DataTypes.DATE,
       allowNull: true,
     },
     Duration: {
@@ -29,10 +29,18 @@ const Class = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    numofmember: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     TrainerID: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    price:{
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    }
   },
   {
     tableName: "Class",

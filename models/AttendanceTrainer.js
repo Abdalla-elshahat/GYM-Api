@@ -21,7 +21,7 @@ const AttendanceTrainer = sequelize.define("AttendanceTrainer",
       allowNull: true,
     },
     Date: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: true,
     },
   },

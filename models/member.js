@@ -48,6 +48,7 @@ const Member = sequelize.define("Member", {
   Status: {
     type: DataTypes.STRING(10),
     allowNull: true,
+    defaultValue:"Inactive"
   },
   lesson: {
     type: DataTypes.INTEGER,

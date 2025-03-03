@@ -1,33 +1,62 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const swaggerJsdoc = require("swagger-jsdoc");
+const swaggerUi = require("swagger-ui-express");
+
+// استيراد جميع المسارات
 const memberRoutes = require("./routes/members");
 const TrainerRoutes = require("./routes/Trainer");
-const Attendance= require("./routes/Attendance");
-const AttendanceTrainer= require("./routes/AttendanceTrainer");
-const equipment= require("./routes/equipment");
-const maintenance = require("./routes/maintenance");
-const MembershipPlan = require("./routes/MembershipPlan");
-const Feedback=require("./routes/Feedback");
-const Class=require("./routes/Class");
+const AttendanceRoutes = require("./routes/Attendance");
+const AttendanceTrainerRoutes = require("./routes/AttendanceTrainer");
+const equipmentRoutes = require("./routes/equipment");
+const maintenanceRoutes = require("./routes/maintenance");
+const MembershipPlanRoutes = require("./routes/MembershipPlan");
+const FeedbackRoutes = require("./routes/Feedback");
+const ClassRoutes = require("./routes/Class");
+const MemberWithClassRoutes = require("./routes/memberwithclass");
+const MemberWithTrainerRoutes = require("./routes/memberwithtrainer");
+
 const sequelize = require("./config/db");
+
 // ✅ تحميل ملف العلاقات (ضروري قبل sync)
-require("./config/associations"); 
+require("./config/associations");
+
 const app = express();
 
-// Middleware
+// ✅ Middleware
 app.use(express.json());
 app.use(cors());
+
+// ✅ إعداد Swagger
+const swaggerOptions = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "Gym API",
+      version: "1.0.0",
+      description: "API documentation for Gym Management System",
+    },
+    servers: [{ url: "http://localhost:3000" }],
+  },
+  apis: ["./routes/*.js"], // 🔥 تأكد من أن التعليقات التوضيحية موجودة داخل ملفات المسارات
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 // ✅ ربط المسارات
 app.use("/api/members", memberRoutes);
-app.use("/api/Attendance",Attendance);
+app.use("/api/Attendance", AttendanceRoutes);
 app.use("/api/Trainer", TrainerRoutes);
-app.use("/api/AttendanceTrainer",AttendanceTrainer);
-app.use("/api/equipment", equipment);
-app.use("/api/maintenance",maintenance);
-app.use("/api/MembershipPlan",MembershipPlan);
-app.use("/api/Feedback",Feedback);
-app.use("/api/class",Class);
+app.use("/api/AttendanceTrainer", AttendanceTrainerRoutes);
+app.use("/api/equipment", equipmentRoutes);
+app.use("/api/maintenance", maintenanceRoutes);
+app.use("/api/MembershipPlan", MembershipPlanRoutes);
+app.use("/api/Feedback", FeedbackRoutes);
+app.use("/api/class", ClassRoutes);
+app.use("/api/MemberWithClass", MemberWithClassRoutes);
+app.use("/api/MemberWithTrainer", MemberWithTrainerRoutes);
 
 // ✅ مزامنة قاعدة البيانات
 (async () => {
@@ -44,7 +73,8 @@ app.all("*", (req, res) => {
 });
 
 // ✅ تشغيل السيرفر
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📖 API Docs available at http://localhost:${PORT}/api-docs`);
 });

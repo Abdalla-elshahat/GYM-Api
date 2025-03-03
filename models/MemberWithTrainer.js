@@ -6,11 +6,9 @@ const MemberWithTrainer = sequelize.define(
   {
     member_id: {
       type: DataTypes.INTEGER,
-      primaryKey: true,
     },
     trainer_id: {
       type: DataTypes.INTEGER,
-      primaryKey: true,
     },
   },
   {

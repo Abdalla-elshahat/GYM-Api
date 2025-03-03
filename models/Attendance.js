@@ -21,7 +21,7 @@ const Attendance = sequelize.define("Attendance",
       allowNull: true,
     },
     Date: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: true,
     },
   },

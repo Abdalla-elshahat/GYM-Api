@@ -6,11 +6,9 @@ const MemberWithClass = sequelize.define(
   {
     member_id: {
       type: DataTypes.INTEGER,
-      primaryKey: true,
     },
     class_id: {
       type: DataTypes.INTEGER,
-      primaryKey: true,
     },
   },
   {
