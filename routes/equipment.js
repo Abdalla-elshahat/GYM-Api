@@ -1,7 +1,6 @@
 const express = require("express");
-const Equipment = require("../models/Equipment");
-const Maintenance = require("../models/Maintenance");
 const router = express.Router();
+const EquipmentController = require("../controllers/EquipmentController");
 
 /**
  * @swagger
@@ -20,20 +19,16 @@ const router = express.Router();
  *     responses:
  *       200:
  *         description: A list of equipment.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Equipment'
  *       500:
- *         description: Server error.
+ *         $ref: '#/components/responses/ServerError'
  */
-// ✅ جلب جميع المعدات
-router.get("/", async (req, res) => {
-  try {
-    const attendanceRecords = await Equipment.findAll({
-      include:Maintenance
-    });
-    res.status(200).json(attendanceRecords);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.get("/", EquipmentController.getAllEquipment);
 
 /**
  * @swagger
@@ -41,32 +36,18 @@ router.get("/", async (req, res) => {
  *   get:
  *     summary: Get specific equipment by ID
  *     tags: [Equipment]
- *     description: Retrieve details of a specific equipment record.
  *     parameters:
  *       - in: path
  *         name: eqID
  *         required: true
- *         description: ID of the equipment to retrieve
+ *         schema: { type: integer }
  *     responses:
  *       200:
  *         description: Equipment details.
- *       404:
- *         description: Equipment not found.
  *       500:
- *         description: Server error.
+ *         $ref: '#/components/responses/ServerError'
  */
-// ✅ جلب بيانات معدات معينة
-router.get("/:eqID", async (req, res) => {
-  try {
-    const records = await Equipment.findAll({ 
-      where: { EquipmentID: req.params.eqID },
-      include :Maintenance
-    });
-    res.json(records);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.get("/:eqID", EquipmentController.getEquipmentById);
 
 /**
  * @swagger
@@ -74,29 +55,19 @@ router.get("/:eqID", async (req, res) => {
  *   post:
  *     summary: Add new equipment
  *     tags: [Equipment]
- *     description: Add a new equipment record.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
+ *             $ref: '#/components/schemas/EquipmentInput'
  *     responses:
  *       201:
  *         description: Equipment added successfully.
  *       500:
- *         description: Server error.
+ *         $ref: '#/components/responses/ServerError'
  */
-// ✅ إضافة معدات جديدة
-router.post("/", async (req, res) => {
-  const data=req.body
-  try {
-    const eq = await Equipment.create(data);
-    res.status(201).json({ message: "Equipment added successfully", data: eq });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.post("/", EquipmentController.createEquipment);
 
 /**
  * @swagger
@@ -104,56 +75,28 @@ router.post("/", async (req, res) => {
  *   put:
  *     summary: Update equipment data
  *     tags: [Equipment]
- *     description: Update an existing equipment record.
  *     parameters:
  *       - in: path
  *         name: eqID
  *         required: true
- *         description: ID of the equipment to update
+ *         schema: { type: integer }
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
+ *             $ref: '#/components/schemas/EquipmentInput'
  *     responses:
  *       200:
  *         description: Equipment updated successfully.
  *       404:
- *         description: Equipment not found.
+ *         $ref: '#/components/responses/NotFound'
+ *       400:
+ *         description: Failed to update equipment data.
  *       500:
- *         description: Server error.
+ *         $ref: '#/components/responses/ServerError'
  */
-// ✅ تحديث بيانات معدات
-router.put("/:eqID", async (req, res) => {
-  try {
-    // Find the equipment record
-    const record = await Equipment.findOne({
-      where: { EquipmentID: req.params.eqID },
-    });
-
-    if (!record) {
-      return res.status(404).json({ message: "No equipment record found" });
-    }
-
-    // Update the record with new data from the request
-    const updatedRecord = await Equipment.update(req.body, {
-      where: { EquipmentID: req.params.eqID },
-    });
-
-    const record2 = await Equipment.findOne({
-      where: { EquipmentID: req.params.eqID },
-    });
-    // Check if the record was updated successfully
-    if (updatedRecord[0] === 0) {
-      return res.status(400).json({ message: "Failed to update equipment data" });
-    }
-
-    res.json({ message: "Equipment updated successfully", data: record2 });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.put("/:eqID", EquipmentController.updateEquipment);
 
 /**
  * @swagger
@@ -166,31 +109,15 @@ router.put("/:eqID", async (req, res) => {
  *       - in: path
  *         name: eqID
  *         required: true
- *         description: ID of the equipment to delete
+ *         schema: { type: integer }
  *     responses:
  *       200:
  *         description: Equipment and related maintenance records deleted.
  *       404:
- *         description: Equipment not found.
+ *         $ref: '#/components/responses/NotFound'
  *       500:
- *         description: Server error.
+ *         $ref: '#/components/responses/ServerError'
  */
-// ✅ حذف معدات
-router.delete('/:eqID', async (req, res) => {
-  try {
-    const { eqID } = req.params;
-    await Maintenance.destroy({ where: { EquipmentID: Number(eqID) } });
-    const deleted = await Equipment.destroy({ where: { EquipmentID: Number(eqID) } });
-    if (deleted) {
-      res.json({ message: 'Equipment and related maintenance records deleted' });
-    } else {
-      res.status(404).json({ message: 'Equipment not found' });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
+router.delete("/:eqID", EquipmentController.deleteEquipment);
 
 module.exports = router;

@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const AttendanceTrainer = require("../models/AttendanceTrainer");
-const Trainer = require("../models/Trainer");
-const { Op } = require("sequelize");
+const AttendanceTrainerController = require("../controllers/AttendanceTrainerController");
+
 /**
  * @swagger
  * tags:
@@ -12,69 +11,48 @@ const { Op } = require("sequelize");
 
 /**
  * @swagger
- * /api/attendanceTrainer/:
+ * /api/AttendanceTrainer:
  *   get:
  *     summary: Retrieve all trainer attendance records
+ *     tags: [attendanceTrainer]
  *     responses:
  *       200:
  *         description: A list of all trainer attendance records
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
-// ✅ جلب جميع سجلات الحضور
-router.get("/", async (req, res) => {
-  try {
-    const attendanceRecords = await AttendanceTrainer.findAll({ include: Trainer });
-    res.status(200).json(attendanceRecords);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.get("/", AttendanceTrainerController.getAllAttendance);
 
 /**
  * @swagger
- * /api/attendanceTrainer/{TrainerID}:
+ * /api/AttendanceTrainer/{TrainerID}:
  *   get:
  *     summary: Retrieve trainer attendance record by TrainerID
+ *     tags: [attendanceTrainer]
  *     parameters:
  *       - in: path
  *         name: TrainerID
  *         required: true
- *         schema:
- *           type: integer
+ *         schema: { type: integer }
  *     responses:
  *       200:
  *         description: Trainer attendance record retrieved successfully
- *       404:
- *         description: Trainer attendance record not found
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
-// ✅ جلب سجل حضور معين عبر TrainerID
-router.get("/:TrainerID", async (req, res) => {
-  try {
-    const records = await AttendanceTrainer.findOne({ 
-      where: { TrainerID: req.params.TrainerID },
-      include:Trainer
-    });
-    res.json(records);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.get("/:TrainerID", AttendanceTrainerController.getAttendanceByTrainer);
 
 /**
  * @swagger
- * /api/attendanceTrainer/Date/{date}:
+ * /api/AttendanceTrainer/Date/{date}:
  *   get:
  *     summary: Retrieve trainer attendance records for a specific date
+ *     tags: [attendanceTrainer]
  *     parameters:
  *       - in: path
  *         name: date
  *         required: true
- *         schema:
- *           type: string
- *           format: date
+ *         schema: { type: string, format: date }
  *         description: The date in YYYY-MM-DD format
  *     responses:
  *       200:
@@ -84,186 +62,69 @@ router.get("/:TrainerID", async (req, res) => {
  *       404:
  *         description: No trainer attendance records found
  */
-// ✅ جلب سجل حضور لي يوم معين
-router.get("/Date/:date", async (req, res) => {
-  try {
-    const { date } = req.params;
-
-    // تحقق من صحة التنسيق (اختياري)
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      return res.status(400).json({ error: "Invalid date format. Use YYYY-MM-DD" });
-    }
-
-    const records = await AttendanceTrainer.findAll({  // استبدل بـ findOne إذا كنت تتوقع سجلًا واحدًا فقط
-      where: { Date: date },
-      include: [{ model: Trainer }]  // تأكد من وجود العلاقة في الموديل
-    });
-
-    if (!records.length) {
-      return res.status(404).json({ message: "No attendance records found for this date." });
-    }
-
-    res.json(records);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.get("/Date/:date", AttendanceTrainerController.getAttendanceByDate);
 
 /**
  * @swagger
- * /api/attendanceTrainer/range/{startDate}/{endDate}:
+ * /api/AttendanceTrainer/range/{startDate}/{endDate}:
  *   get:
  *     summary: Retrieve trainer attendance records between two dates
+ *     tags: [attendanceTrainer]
  *     parameters:
  *       - in: path
  *         name: startDate
  *         required: true
- *         schema:
- *           type: string
- *           format: date
+ *         schema: { type: string, format: date }
  *       - in: path
  *         name: endDate
  *         required: true
- *         schema:
- *           type: string
- *           format: date
+ *         schema: { type: string, format: date }
  *     responses:
  *       200:
  *         description: A list of trainer attendance records
  */
-// ✅  جلب جميع الحضور بين تاريخين
-router.get("/range/:startDate/:endDate", async (req, res) => {
-  try {
-    const { startDate, endDate } = req.params;
-
-    const records = await AttendanceTrainer.findAll({
-      where: {
-        Date: {
-          [Op.between]: [startDate, endDate]
-        }
-      },
-      include:Trainer
-    });
-
-    res.json(records);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.get("/range/:startDate/:endDate", AttendanceTrainerController.getAttendanceByRange);
 
 /**
  * @swagger
- * /api/attendanceTrainer/in/{trainerID}:
+ * /api/AttendanceTrainer/in/{trainerID}:
  *   post:
  *     summary: Check-in a trainer
+ *     tags: [attendanceTrainer]
  *     parameters:
  *       - in: path
  *         name: trainerID
  *         required: true
- *         schema:
- *           type: integer
+ *         schema: { type: integer }
  *     responses:
  *       201:
  *         description: Check-in successful
  *       400:
  *         description: Invalid request or already checked in
  *       404:
- *         description: Trainer not found
+ *         $ref: '#/components/responses/NotFound'
  *       500:
- *         description: Server error
+ *         $ref: '#/components/responses/ServerError'
  */
-// ✅ تسجيل دخول (Check-in)
-router.post("/in/:trainerID", async (req, res) => {
-  try {
-    // ✅ تحويل trainerID إلى رقم والتأكد من صحته
-    const TrainerID = Number(req.params.trainerID);
-    if (isNaN(TrainerID)) {
-      return res.status(400).json({ message: "Invalid TrainerID" });
-    }
-
-    const today = new Date().toISOString().split('T')[0]; 
-
-    // ✅ التحقق من وجود المدرب
-    const trainer = await Trainer.findOne({ where: { TrainerID } });
-    if (!trainer) {
-      return res.status(404).json({ message: "Trainer not found" });
-    }
-
-    // ✅ التحقق مما إذا كان المدرب قد قام بـ Check-in اليوم
-    const existingCheckIn = await AttendanceTrainer.findOne({
-      where: { TrainerID, Date: today }
-    });
-
-    if (existingCheckIn) {
-      return res.status(400).json({ message: "لقد قمت بتسجيل الدخول بالفعل اليوم" });
-    }
-
-    // ✅ تقليل عدد الدروس إذا كان يمتلك دروسًا كافية
-    if (trainer.lesson <= 0) {
-      return res.status(400).json({ message: "لا يوجد لديك دروس كافية" });
-    }
-
-    await Trainer.update(
-      { lesson: trainer.lesson +1 },
-      { where: { TrainerID } }
-    );
-
-    const checkInTime = new Date().toISOString().split('T')[1]; // ✅ تخزين الوقت فقط
-
-    // ✅ تسجيل الحضور
-    const checkInRecord = await AttendanceTrainer.create({
-      TrainerID,
-      CheckInTime: checkInTime,
-      Date: today,
-    });
-
-    res.status(201).json({ message: "Checked in successfully", data: checkInRecord });
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.post("/in/:trainerID", AttendanceTrainerController.checkIn);
 
 /**
  * @swagger
- * /api/attendanceTrainer/out/{trainerID}:
+ * /api/AttendanceTrainer/out/{trainerID}:
  *   post:
  *     summary: Check-out a trainer
+ *     tags: [attendanceTrainer]
  *     parameters:
  *       - in: path
  *         name: trainerID
  *         required: true
- *         schema:
- *           type: integer
+ *         schema: { type: integer }
  *     responses:
  *       200:
  *         description: Check-out successful
  *       404:
- *         description: Trainer or check-in record not found
+ *         $ref: '#/components/responses/NotFound'
  */
-// ✅ تسجيل خروج (Check-out)
-router.post("/out/:trainerID", async (req, res) => {
-  try {
-    const trainerID =parseInt(req.params.trainerID);
-    const today = new Date().toISOString().split('T')[0]; 
-    const record = await AttendanceTrainer.findOne({
-      where: { trainerID, CheckOutTime: null,Date:today },
-    });
-
-    if (!record) {
-      return res.status(404).json({ message: "No check-in record found" });
-    }
-
-    const checkOutTime = new Date();  // الحصول على الوقت الحالي عند الخروج
-    record.CheckOutTime = checkOutTime.toISOString().split('T')[1];
-    record.Date = checkOutTime.toISOString().split('T')[0];
-    await record.save();
-    
-    res.json({ message: "Checked out successfully", data: record });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
+router.post("/out/:trainerID", AttendanceTrainerController.checkOut);
 
 module.exports = router;

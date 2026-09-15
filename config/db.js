@@ -1,25 +1,34 @@
 const { Sequelize } = require("sequelize");
+require("dotenv").config();
 
-const sequelize = new Sequelize("GYM", "abdalla", "4749*afa", {
-  host: "DESKTOP-7C4IGRO",
-  dialect: "mssql",
-  dialectOptions: {
-    options: {
-      encrypt: false, // 🔹 قد تحتاج لتغيير هذا حسب إعداداتك
+const sequelize = new Sequelize(
+  process.env.DB_DATABASE,
+  process.env.DB_USERNAME,
+  process.env.DB_PASSWORD,
+  {
+    host: process.env.DB_HOST || "DESKTOP-7C4IGRO",
+    dialect: "mssql",
+
+    dialectOptions: {
+      options: {
+        encrypt: false,
+        trustServerCertificate: true,
+      },
     },
-  },
-  logging: false, // ✅ تعطيل تسجيل الاستعلامات
-});
 
-// ✅ فحص الاتصال
+    logging: false,
+  }
+);
+
 async function testConnection() {
   try {
     await sequelize.authenticate();
-    console.log("✅ Connected to the database successfully!");
+    console.log("✅ Connected to SQL Server successfully!");
   } catch (error) {
     console.error("❌ Database connection failed:", error);
   }
 }
+
 testConnection();
 
 module.exports = sequelize;

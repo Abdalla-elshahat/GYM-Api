@@ -37,9 +37,9 @@ const swaggerOptions = {
       version: "1.0.0",
       description: "API documentation for Gym Management System",
     },
-    servers: [{ url: "http://localhost:3000" }],
+    servers: [{ url: `http://localhost:${process.env.PORT}` }],
   },
-  apis: ["./routes/*.js"], // 🔥 تأكد من أن التعليقات التوضيحية موجودة داخل ملفات المسارات
+  apis: ["./routes/*.js", "./swagger/*.js"], // 🔥 تأكد من أن التعليقات التوضيحية موجودة داخل ملفات المسارات وملفات الـ swagger المشتركة
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
@@ -70,6 +70,12 @@ app.use("/api/MemberWithTrainer", MemberWithTrainerRoutes);
 
 app.all("*", (req, res) => {
   res.status(404).json({ message: "Route not found" });
+});
+
+// ✅ Central error handler (used by controller -> service -> repository layers)
+app.use((err, req, res, next) => {
+  const statusCode = err.statusCode || 500;
+  res.status(statusCode).json({ error: err.message || "Server error" });
 });
 
 // ✅ تشغيل السيرفر
