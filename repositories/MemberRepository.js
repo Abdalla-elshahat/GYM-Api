@@ -4,7 +4,7 @@ const MembershipPlan = require("../models/MembershipPlan");
 
 class MemberRepository {
   findAll(q) {
-    if (!q) return Member.findAll({ include: MembershipPlan });
+    if (!q) return Member.findAll({ include: MembershipPlan, attributes: { exclude: ["password"] } });
 
     const like = { [Op.like]: `%${q}%` };
     return Member.findAll({
@@ -17,6 +17,7 @@ class MemberRepository {
         ],
       },
       include: MembershipPlan,
+      attributes: { exclude: ["password"] },
     });
   }
 
@@ -29,7 +30,7 @@ class MemberRepository {
   }
 
   findById(id) {
-    return Member.findByPk(id, { include: MembershipPlan });
+    return Member.findByPk(id, { include: MembershipPlan, attributes: { exclude: ["password"] } });
   }
 
   create(data) {

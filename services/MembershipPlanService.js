@@ -32,9 +32,9 @@ class MembershipPlanService {
     if (!plan) throw new ApiError(400, "الاشتراك مش موجود");
 
     const [affected] = await MembershipPlanRepository.renewMember(memberId, {
+      ...data,
       lesson: plan.lesson,
       status: "Active",
-      ...data,
     });
 
     if (affected === 1) return "الاشتراك تم بالفعل";

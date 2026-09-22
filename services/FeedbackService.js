@@ -22,9 +22,9 @@ class FeedbackService {
 
   createFeedback(memberId, data) {
     return FeedbackRepository.create({
+      ...data,
       MemberID: memberId,
       Date: new Date(),
-      ...data,
     });
   }
 

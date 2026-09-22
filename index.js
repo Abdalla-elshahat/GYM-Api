@@ -18,6 +18,7 @@ const MemberWithClassRoutes = require("./routes/memberwithclass");
 const MemberWithTrainerRoutes = require("./routes/memberwithtrainer");
 
 const sequelize = require("./config/db");
+const ApiError = require("./utils/ApiError");
 
 // ✅ تحميل ملف العلاقات (ضروري قبل sync)
 require("./config/associations");
@@ -26,7 +27,19 @@ const app = express();
 
 // ✅ Middleware
 app.use(express.json());
-app.use(cors());
+
+// Restrict cross-origin access to known frontend origins instead of
+// reflecting/allowing every origin. Configure via CORS_ORIGIN (comma-separated)
+// in production; defaults to the local Angular dev server.
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:4200")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+app.use(
+  cors({
+    origin: allowedOrigins,
+  })
+);
 
 // ✅ إعداد Swagger
 const swaggerOptions = {
@@ -42,8 +55,12 @@ const swaggerOptions = {
   apis: ["./routes/*.js", "./swagger/*.js"], // 🔥 تأكد من أن التعليقات التوضيحية موجودة داخل ملفات المسارات وملفات الـ swagger المشتركة
 };
 
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Only expose the API schema/docs outside production — it enumerates every
+// resource shape, which is unnecessary surface area to hand out publicly.
+if (process.env.NODE_ENV !== "production") {
+  const swaggerSpec = swaggerJsdoc(swaggerOptions);
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
 
 // ✅ ربط المسارات
 app.use("/api/members", memberRoutes);
@@ -75,7 +92,17 @@ app.all("*", (req, res) => {
 // ✅ Central error handler (used by controller -> service -> repository layers)
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
-  res.status(statusCode).json({ error: err.message || "Server error" });
+
+  // Only ApiError messages are intentional/safe to show to clients.
+  // Anything else (e.g. raw Sequelize/DB errors) may contain internal
+  // schema/table/column details, so log it server-side and return a
+  // generic message instead of leaking it in the response.
+  if (err instanceof ApiError) {
+    return res.status(statusCode).json({ error: err.message });
+  }
+
+  console.error(err);
+  res.status(statusCode).json({ error: "Server error" });
 });
 
 // ✅ تشغيل السيرفر
