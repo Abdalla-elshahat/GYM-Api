@@ -2,7 +2,7 @@ const MemberService = require("../services/MemberService");
 
 const getAllMembers = async (req, res, next) => {
   try {
-    const members = await MemberService.getAllMembers();
+    const members = await MemberService.getAllMembers(req.query.q);
     res.status(200).json(members);
   } catch (err) {
     next(err);

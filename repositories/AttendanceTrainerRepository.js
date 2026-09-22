@@ -40,7 +40,7 @@ class AttendanceTrainerRepository {
 
   findOpenCheckIn(trainerId, date) {
     return AttendanceTrainer.findOne({
-      where: { trainerID: trainerId, CheckOutTime: null, Date: date },
+      where: { TrainerID: trainerId, CheckOutTime: null, Date: date },
     });
   }
 

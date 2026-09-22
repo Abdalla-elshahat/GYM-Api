@@ -1,10 +1,23 @@
+const { Op } = require("sequelize");
 const Trainer = require("../models/Trainer");
 const Class = require("../models/Class");
 const Member = require("../models/member");
 
 class TrainerRepository {
-  findAll() {
-    return Trainer.findAll();
+  findAll(q) {
+    if (!q) return Trainer.findAll();
+
+    const like = { [Op.like]: `%${q}%` };
+    return Trainer.findAll({
+      where: {
+        [Op.or]: [
+          { FirstName: like },
+          { LastName: like },
+          { Email: like },
+          { PhoneNumber: like },
+        ],
+      },
+    });
   }
 
   findById(id) {

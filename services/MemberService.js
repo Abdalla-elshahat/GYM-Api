@@ -2,8 +2,8 @@ const MemberRepository = require("../repositories/MemberRepository");
 const ApiError = require("../utils/ApiError");
 
 class MemberService {
-  getAllMembers() {
-    return MemberRepository.findAll();
+  getAllMembers(q) {
+    return MemberRepository.findAll(q);
   }
 
   async getActiveMembers() {

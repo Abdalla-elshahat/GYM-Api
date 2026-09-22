@@ -1,9 +1,22 @@
+const { Op } = require("sequelize");
 const Equipment = require("../models/Equipment");
 const Maintenance = require("../models/Maintenance");
 
 class EquipmentRepository {
-  findAll() {
-    return Equipment.findAll({ include: Maintenance });
+  findAll(q) {
+    if (!q) return Equipment.findAll({ include: Maintenance });
+
+    const like = { [Op.like]: `%${q}%` };
+    return Equipment.findAll({
+      where: {
+        [Op.or]: [
+          { EquipmentName: like },
+          { EquipmentType: like },
+          { Status: like },
+        ],
+      },
+      include: Maintenance,
+    });
   }
 
   findById(id) {

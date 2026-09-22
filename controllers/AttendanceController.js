@@ -48,6 +48,15 @@ const checkIn = async (req, res, next) => {
   }
 };
 
+const getLatestCheckIn = async (req, res, next) => {
+  try {
+    const record = await AttendanceService.getLatestCheckIn();
+    res.status(200).json(record);
+  } catch (err) {
+    next(err);
+  }
+};
+
 const checkOut = async (req, res, next) => {
   try {
     const record = await AttendanceService.checkOut(req.params.memberID);
@@ -71,6 +80,7 @@ module.exports = {
   getAttendanceByMember,
   getAttendanceByDate,
   getAttendanceByRange,
+  getLatestCheckIn,
   checkIn,
   checkOut,
   deleteAttendance,

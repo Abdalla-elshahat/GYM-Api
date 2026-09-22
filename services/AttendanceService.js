@@ -75,6 +75,13 @@ class AttendanceService {
     });
   }
 
+  async getLatestCheckIn() {
+    const today = new Date().toISOString().split("T")[0];
+    const record = await AttendanceRepository.findLatestOpenCheckIn(today);
+    if (!record) throw new ApiError(404, "No recent fingerprint scan found. Please check in first.");
+    return record;
+  }
+
   async checkOut(memberId) {
     const MemberID = parseInt(memberId);
     const today = new Date().toISOString().split("T")[0];

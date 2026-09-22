@@ -2,7 +2,7 @@ const TrainerService = require("../services/TrainerService");
 
 const getAllTrainers = async (req, res, next) => {
   try {
-    const trainers = await TrainerService.getAllTrainers();
+    const trainers = await TrainerService.getAllTrainers(req.query.q);
     res.status(200).json(trainers);
   } catch (err) {
     next(err);

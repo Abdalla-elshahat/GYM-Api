@@ -2,8 +2,8 @@ const TrainerRepository = require("../repositories/TrainerRepository");
 const ApiError = require("../utils/ApiError");
 
 class TrainerService {
-  getAllTrainers() {
-    return TrainerRepository.findAll();
+  getAllTrainers(q) {
+    return TrainerRepository.findAll(q);
   }
 
   async getTrainerById(id) {

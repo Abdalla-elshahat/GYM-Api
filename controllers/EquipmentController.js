@@ -2,7 +2,7 @@ const EquipmentService = require("../services/EquipmentService");
 
 const getAllEquipment = async (req, res, next) => {
   try {
-    const equipment = await EquipmentService.getAllEquipment();
+    const equipment = await EquipmentService.getAllEquipment(req.query.q);
     res.status(200).json(equipment);
   } catch (err) {
     next(err);

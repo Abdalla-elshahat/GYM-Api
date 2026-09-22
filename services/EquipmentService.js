@@ -2,8 +2,8 @@ const EquipmentRepository = require("../repositories/EquipmentRepository");
 const ApiError = require("../utils/ApiError");
 
 class EquipmentService {
-  getAllEquipment() {
-    return EquipmentRepository.findAll();
+  getAllEquipment(q) {
+    return EquipmentRepository.findAll(q);
   }
 
   getEquipmentById(id) {

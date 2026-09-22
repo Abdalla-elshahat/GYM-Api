@@ -1,9 +1,23 @@
+const { Op } = require("sequelize");
 const Member = require("../models/member");
 const MembershipPlan = require("../models/MembershipPlan");
 
 class MemberRepository {
-  findAll() {
-    return Member.findAll({ include: MembershipPlan });
+  findAll(q) {
+    if (!q) return Member.findAll({ include: MembershipPlan });
+
+    const like = { [Op.like]: `%${q}%` };
+    return Member.findAll({
+      where: {
+        [Op.or]: [
+          { FirstName: like },
+          { LastName: like },
+          { Email: like },
+          { PhoneNumber: like },
+        ],
+      },
+      include: MembershipPlan,
+    });
   }
 
   findActive() {

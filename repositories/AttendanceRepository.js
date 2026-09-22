@@ -53,6 +53,14 @@ class AttendanceRepository {
     });
   }
 
+  findLatestOpenCheckIn(date) {
+    return Attendance.findOne({
+      where: { Date: date, CheckOutTime: null },
+      order: [["CheckInTime", "DESC"]],
+      include: Member,
+    });
+  }
+
   findById(recordId) {
     return Attendance.findByPk(recordId);
   }

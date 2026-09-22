@@ -1,13 +1,14 @@
 const Feedback = require("../models/Feedback");
 const Member = require("../models/member");
+const Trainer = require("../models/Trainer");
 
 class FeedbackRepository {
   findAll() {
-    return Feedback.findAll({ include: Member });
+    return Feedback.findAll({ include: [Member, Trainer] });
   }
 
   findById(id) {
-    return Feedback.findByPk(id, { include: Member });
+    return Feedback.findByPk(id, { include: [Member, Trainer] });
   }
 
   findByTrainerId(trainerId) {

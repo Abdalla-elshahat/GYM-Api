@@ -107,6 +107,20 @@ router.get("/range/:startDate/:endDate", AttendanceController.getAttendanceByRan
 
 /**
  * @swagger
+ * /api/Attendance/scan/latest:
+ *   get:
+ *     summary: Get the most recently checked-in member who hasn't checked out yet today (simulated fingerprint scan)
+ *     tags: [Attendance]
+ *     responses:
+ *       200:
+ *         description: The latest open check-in record, including the member.
+ *       404:
+ *         description: No recent check-in found.
+ */
+router.get("/scan/latest", AttendanceController.getLatestCheckIn);
+
+/**
+ * @swagger
  * /api/Attendance/in/{memberID}:
  *   post:
  *     summary: Check-in a member
